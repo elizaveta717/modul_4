@@ -1,0 +1,123 @@
+import tkinter as tk
+from tkinter import messagebox
+import json
+import os
+import threading
+import time
+
+# Константы
+BG_COLOR = '#f0f0f0'
+FG_COLOR = '#333'
+PRIMARY_COLOR = '#007bff'
+SECONDARY_COLOR = '#6c757d'
+FONT = ('Arial', 12)
+BOLD_FONT = ('Arial', 14, 'bold')
+DEFAULT_DAILY_GOAL = 2000  # мл
+REMINDER_INTERVAL = 3600  # секунды
+USERS_FILE = 'users.json'
+USER_DATA_PREFIX = 'user_data_'
+
+class WaterIntakeApp:
+    def init(self, root):
+        self.root = root
+        self.root.title('Водный баланс')
+        self.root.geometry('620x740')
+        self.root.configure(bg=BG_COLOR)
+        self.root.resizable(False, False)
+
+        self.logged_in_username = None
+        self.water_drunk = 0
+        self.daily_goal = DEFAULT_DAILY_GOAL
+
+        self.main_frame = tk.Frame(root, bg=BG_COLOR, padx=30, pady=30)
+        self.main_frame.pack(fill='both', expand=True)
+
+        self.show_login_register()
+
+        reminder_thread_obj = threading.Thread(target=self.reminder_thread, daemon=True)
+        reminder_thread_obj.start()
+
+        self.root.protocol('WM_DELETE_WINDOW', self.close)
+
+    def show_login_register(self):
+        # Здесь будет код для отображения экрана входа/регистрации.
+        pass
+
+    def calculate_water_intake(self, weight):
+        # Здесь будет код для расчета рекомендуемого количества воды.
+        return weight * 30  # Примерный расчет
+
+    def set_daily_goal(self):
+        goal_label = tk.Label(self.main_frame, text='Дневная цель (мл):', font=FONT, bg=BG_COLOR, fg=FG_COLOR)
+        goal_label.pack(pady=5)
+
+        goal_entry = tk.Entry(self.main_frame, font=FONT, bg='white', width=15, borderwidth=0)
+        goal_entry.pack(pady=5, padx=30, fill='x')
+
+        save_button = tk.Button(self.main_frame, text='Сохранить', command=lambda: self.save_goal(goal_entry),
+                                bg=PRIMARY_COLOR, fg=BG_COLOR, font=FONT, borderwidth=0, padx=20, pady=8)
+        save_button.pack(pady=10)
+
+    def save_goal(self, goal_entry):
+        new_goal_str = goal_entry.get()
+
+        if new_goal_str.isdigit():
+            new_goal = int(new_goal_str)
+            if new_goal > 0:
+                self.daily_goal = new_goal
+                self.update_progress()
+                self.save_user_data()
+                self.show_water_intake_window()
+            else:
+                messagebox.showerror('Ошибка', 'Цель должна быть положительным числом')
+        else:
+            messagebox.showerror('Ошибка', 'Введите числовое значение')
+
+    def update_progress(self):
+        progress = min(100, (self.water_drunk / self.daily_goal) * 100) if self.daily_goal else 0
+        # Обновление прогресс-бара и метки прогресса здесь.
+
+    def show_water_intake_window(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+        # Поля ввода для веса и роста.
+
+    def user_exists(self, username):
+        if not os.path.exists(USERS_FILE):
+            return False
+
+        try:
+            with open(USERS_FILE, 'r') as f:
+                users = json.load(f)
+            return username in users
+        except (json.JSONDecodeError, FileNotFoundError):
+            return False
+
+    def reminder_thread(self):
+        while True:
+            now = time.time()
+            if self.logged_in_username and now - getattr(self, 'last_reminder_time', 0) >= REMINDER_INTERVAL:
+                self.root.after(0, self.show_reminder)
+                setattr(self, 'last_reminder_time', now)
+            time.sleep(60)
+
+    def show_reminder(self):
+        messagebox.showinfo('Напоминание', 'Пора выпить воды!')
+
+    def close(self):
+        if self.logged_in_username:
+            try:
+                self.save_user_data()
+            except NameError:
+                pass
+        self.root.destroy()
+
+    def save_user_data(self):
+       # Код для сохранения данных пользователя.
+       pass
+
+if name == "main":
+    root = tk.Tk()
+    app = WaterIntakeApp(root)
+    root.mainloop()
