@@ -27,8 +27,7 @@ weight_entry = None
 height_entry = None
 canvas = None  # Холст для прогресс-бара, нужно сделать глобальным
 
-# Создает нового и записывает его в файл с пользователями
-def hash_password(password):
+def hash_password(password): # Создает нового и записывает его в файл с пользователями
     return hashlib.sha256(password.encode()).hexdigest()
 
 def create_user(username, password):
@@ -45,8 +44,7 @@ def create_user(username, password):
         json.dump(users, f)  # Записывает всех пользователей в файл
     messagebox.showinfo('Победа', 'Пользователь создан!')
 
-# Проверяет на правильность
-def authenticate_user(username, password):
+def authenticate_user(username, password): # Проверяет на правильность
     if not os.path.exists(USERS_FILE):
         return False
     try:
@@ -56,14 +54,12 @@ def authenticate_user(username, password):
         return False  # Значит, пользователя нет
     return username in users and users[username] == hash_password(password)  # Проверяет логин и пароль
 
-# Экран входа и регистрации
-def show_login_register():
+def show_login_register(): # Экран входа и регистрации
     global root, bot_image, main_frame, username_entry, password_entry, reg_username_entry, reg_password_entry, reg_password_confirm_entry, weight_entry, height_entry, progress_bar, progress_label, water_drunk_label, canvas
 
     for widget in main_frame.winfo_children():
         widget.destroy()
 
-    # Загружает картинку
     try:
         bot_image = PhotoImage(file='bot.png')
         bot_image = bot_image.subsample(3, 3)  # Уменьшает картинку
@@ -166,8 +162,7 @@ def save_user_data(username, weight, height, goal=None, water_drunk=None):
     if water_drunk is not None:
         user_data['water_drunk'] = water_drunk
 
-    # Сохраняем ежедневные записи
-    today = date.today().strftime("%Y-%m-%d")
+    today = date.today().strftime("%Y-%m-%d")  # Сохраняет ежедневные записи
     if 'daily_records' not in user_data:
         user_data['daily_records'] = {}
     user_data['daily_records'][today] = user_data.get('water_drunk', 0)
@@ -186,12 +181,11 @@ def load_user_data(username):
         with open(filename, 'r') as f:
             user_data = json.load(f)
 
-            # Обновляем глобальные переменные
-            global daily_goal, water_drunk
+            global daily_goal, water_drunk # Обновляет глобальные переменные
             daily_goal = user_data.get('daily_goal', DEFAULT_DAILY_GOAL)
             water_drunk = user_data.get('water_drunk', 0)
 
-            return user_data # Возвращаем данные для использования
+            return user_data # Возвращает данные для использования
     except (json.JSONDecodeError, FileNotFoundError):
         messagebox.showerror('Ошибка', 'Ошибка чтения данных пользователя')
         return None
@@ -212,17 +206,14 @@ def record_bottles():
         num_bottles = int(num_bottles_str)
         added_water = num_bottles * 500
         water_drunk += added_water
-        # Получаем вес и рост из полей ввода
-        weight = weight_entry.get()
-        height = height_entry.get()
+        weight = weight_entry.get() # Получаем вес и рост из полей ввода
+        height = height_entry.get() 
 
-        # Проверяем, что вес и рост введены корректно (опционально)
-        if not weight or not weight.replace('.', '', 1).isdigit() or not height or not height.replace('.', '', 1).isdigit():
+        if not weight or not weight.replace('.', '', 1).isdigit() or not height or not height.replace('.', '', 1).isdigit():  # Проверяет, что вес и рост введены верно
             messagebox.showerror('Ошибка', 'Введите корректные значения для веса и роста')
             return
-
-        # Сохраняем новые данные
-        save_user_data(logged_in_username, weight, height, daily_goal, water_drunk)
+            
+        save_user_data(logged_in_username, weight, height, daily_goal, water_drunk) # Сохраняет новые данные
         update_progress()  # Обновляем прогресс
         messagebox.showinfo('Успех', f'Записано {num_bottles} бутылок(-ки)!')
         show_water_intake_window()
@@ -268,8 +259,7 @@ def set_daily_goal():
             new_goal = int(new_goal_str)
             if new_goal > 0:
                 daily_goal = new_goal
-                # Получает вес и рост
-                weight = weight_entry.get()
+                weight = weight_entry.get()  # Получает вес и рост
                 height = height_entry.get()
                 save_user_data(logged_in_username, weight, height, new_goal)
                 update_progress()
@@ -330,13 +320,12 @@ def show_water_intake_window():
         menu = tk.Menu(root, tearoff=0)
         menu.add_command(label='Вернуться ко входу и удалить данные', command=reset_and_show_login, background=BG_COLOR, foreground=FG_COLOR)
         menu.add_command(label='Посмотреть статистику', command=show_stats, background=BG_COLOR, foreground=FG_COLOR)
-        try:  # Показ меню где кликнули
-            menu.tk_popup(event.x_root, event.y_root)
+        try: 
+            menu.tk_popup(event.x_root, event.y_root)  # Показ меню где кликнули
         except AttributeError:
             menu.tk_popup(main_frame.winfo_rootx() + 50, main_frame.winfo_rooty() + 50)
 
-    # Картинка бутылки
-    bottle_label = tk.Label(main_frame, image=bottle_image, bg=BG_COLOR)
+    bottle_label = tk.Label(main_frame, image=bottle_image, bg=BG_COLOR) # Картинка бутылки
     bottle_label.place(x=0, y=0)
     bottle_label.bind('<Button-1>', show_bottle_menu)
 
@@ -352,15 +341,14 @@ def show_water_intake_window():
     set_goal_button = tk.Button(button_frame, text='Установить цель', command=set_daily_goal, bg=PRIMARY_COLOR, fg=BG_COLOR, font=FONT, borderwidth=0, padx=20, pady=8)
     set_goal_button.pack(side=tk.LEFT, padx=5)
 
-    # Холст для прогресс-бара
     canvas_width = 200
-    canvas_height = 200
+    canvas_height = 200  # Холст для прогресс-бара
     global canvas
     canvas = tk.Canvas(main_frame, width=canvas_width, height=canvas_height, bg=BG_COLOR, highlightthickness=0)
     canvas.pack(pady=20)
     global progress_bar
     progress_bar = canvas
-    create_circular_progress(canvas, 100, 100, 80, 10, PRIMARY_COLOR)  # Initialize progress bar
+    create_circular_progress(canvas, 100, 100, 80, 10, PRIMARY_COLOR)  # Инициализирует прогресс-бар
 
     progress_label = tk.Label(main_frame, text='Прогресс: 0%', font=BOLD_FONT, bg=BG_COLOR, fg=FG_COLOR)
     progress_label.pack(pady=5)
@@ -368,8 +356,7 @@ def show_water_intake_window():
     water_drunk_label = tk.Label(main_frame, text=f'Выпито: {water_drunk} мл', font=FONT, bg=BG_COLOR, fg=FG_COLOR)
     water_drunk_label.pack(pady=5)
 
-    # Загружает данные и инициализирует значения
-    user_data = load_user_data(logged_in_username)
+    user_data = load_user_data(logged_in_username)  # Загружает данные и инициализирует значения
     if user_data:
         weight_entry.insert(0, str(user_data.get('weight', '')))
         height_entry.insert(0, str(user_data.get('height', '')))
@@ -479,7 +466,6 @@ def show_stats():
     weekly_label = tk.Label(stats_window, text='Статистика за неделю:', font=BOLD_FONT, bg=BG_COLOR, fg=FG_COLOR)
     weekly_label.pack(pady=5)
 
-
     weekly_text = tk.Text(stats_window, height=7, width=30, bg='white', fg='black')
     weekly_text.pack(pady=5)
     weekly_text.insert(tk.END, '\n'.join(reversed(weekly_data)))
@@ -519,10 +505,9 @@ def close():
 
     if logged_in_username:
         try:
-            # Сохраняет данные
             weight = weight_entry.get()
             height = height_entry.get()
-            save_user_data(logged_in_username, weight, height, daily_goal, water_drunk)
+            save_user_data(logged_in_username, weight, height, daily_goal, water_drunk) # Сохраняет данные
         except NameError:
             pass
     root.destroy()
